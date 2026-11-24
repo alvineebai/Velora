@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: velora-backend
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: velora-backend
+
+  template:
+    metadata:
+      labels:
+        app: velora-backend
+
+    spec:
+      containers:
+        - name: backend
+          image: veloradevregistry.azurecr.io/velora-backend:v1
+
+          ports:
+            - containerPort: 8000
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+
+          envFrom:
+            - configMapRef:
+                name: velora-backend-config
+
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: velora-db-credentials
+                  key: DB_PASSWORD

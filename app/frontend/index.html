@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Velora | Banking Dashboard</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f9;
+      color: #1f2937;
+    }
+
+    header {
+      background-color: #14213d;
+      color: white;
+      padding: 24px 8%;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 8px 0 0;
+      color: #cbd5e1;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .welcome {
+      margin-bottom: 30px;
+    }
+
+    .welcome h2 {
+      margin-bottom: 8px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: white;
+      padding: 28px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      color: #475569;
+    }
+
+    .balance {
+      font-size: 36px;
+      font-weight: bold;
+      color: #14213d;
+      margin: 20px 0;
+    }
+
+    .account-type {
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      padding: 14px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    li:last-child {
+      border-bottom: none;
+    }
+
+    .transaction {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .positive {
+      color: #15803d;
+    }
+
+    .negative {
+      color: #b91c1c;
+    }
+
+    .error {
+      color: #b91c1c;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: #64748b;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Velora</h1>
+    <p>Digital Banking</p>
+  </header>
+
+  <main>
+    <section class="welcome">
+      <h2>Welcome to Velora</h2>
+      <p>Manage your finances from one simple dashboard.</p>
+    </section>
+
+    <section class="dashboard">
+
+      <div class="card">
+        <h3>Checking Account</h3>
+
+        <p class="account-type">Available Balance</p>
+
+        <p class="balance" id="balance">Loading...</p>
+
+        <p class="account-type" id="account-type">
+          Loading account information...
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Recent Transactions</h3>
+
+        <ul id="transactions">
+          <li>Loading transactions...</li>
+        </ul>
+      </div>
+
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2026 Velora. Demo banking application.
+  </footer>
+
+  <script>
+    async function loadAccount() {
+      const balanceElement = document.getElementById("balance");
+      const accountTypeElement = document.getElementById("account-type");
+      const transactionList = document.getElementById("transactions");
+
+      try {
+        const response = await fetch("/api/account");
+
+        if (!response.ok) {
+          throw new Error("Failed to retrieve account information");
+        }
+
+        const account = await response.json();
+
+        const formatCurrency = (amount) => {
+          return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD"
+          }).format(amount);
+        };
+
+        balanceElement.textContent = formatCurrency(account.balance);
+
+        accountTypeElement.textContent =
+          `${account.account_type} Account`;
+
+        transactionList.replaceChildren();
+
+        account.transactions.forEach((transaction) => {
+          const item = document.createElement("li");
+
+          const transactionRow = document.createElement("div");
+          transactionRow.className = "transaction";
+
+          const description = document.createElement("span");
+          description.textContent = transaction.description;
+
+          const amount = document.createElement("span");
+          amount.textContent = formatCurrency(transaction.amount);
+
+          amount.className =
+            transaction.amount >= 0 ? "positive" : "negative";
+
+          transactionRow.appendChild(description);
+          transactionRow.appendChild(amount);
+
+          item.appendChild(transactionRow);
+          transactionList.appendChild(item);
+        });
+
+      } catch (error) {
+        console.error("Velora API error:", error);
+
+        balanceElement.textContent = "Unavailable";
+        balanceElement.classList.add("error");
+
+        accountTypeElement.textContent =
+          "Unable to load account information";
+
+        transactionList.replaceChildren();
+
+        const errorItem = document.createElement("li");
+        errorItem.textContent = "Unable to load transactions.";
+
+        transactionList.appendChild(errorItem);
+      }
+    }
+
+    loadAccount();
+  </script>
+
+</body>
+</html>

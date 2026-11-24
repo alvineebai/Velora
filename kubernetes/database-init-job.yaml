@@ -1,0 +1,70 @@
+
+apiVersion: batch/v1
+kind: Job
+
+metadata:
+  name: velora-db-init
+
+spec:
+  backoffLimit: 1
+
+  template:
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: postgres-init
+          image: postgres:16
+
+          
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+
+              psql -v ON_ERROR_STOP=1 -f /sql/schema.sql
+              psql -v ON_ERROR_STOP=1 -f /sql/setup.sql
+              psql -v ON_ERROR_STOP=1 -f /sql/seed.sql
+
+              printf '%s\n' \
+              '\getenv app_password APP_DB_PASSWORD' \
+              "ALTER ROLE velora_app PASSWORD :'app_password';" |
+              psql -v ON_ERROR_STOP=1
+
+
+          env:
+            - name: PGHOST
+              value: "velora-db-dev.postgres.database.azure.com"
+
+            - name: PGDATABASE
+              value: "velora"
+
+            - name: PGUSER
+              value: "veloraadmin"
+
+            - name: PGSSLMODE
+              value: "require"
+
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: velora-db-admin-credentials
+                  key: password
+
+
+            - name: APP_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: velora-db-credentials
+                  key: DB_PASSWORD
+
+
+          volumeMounts:
+            - name: sql-scripts
+              mountPath: /sql
+
+      volumes:
+        - name: sql-scripts
+          configMap:
+            name: velora-db-sql
