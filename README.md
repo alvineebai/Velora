@@ -199,4 +199,17 @@ Review the destruction plan before approving. Deleting the PostgreSQL server als
 
 Velora demonstrates practical experience in:
 
-- Provision
+- Provisioning Azure infrastructure using Terraform.
+- Building and managing containerized applications.
+- Deploying workloads to Azure Kubernetes Service.
+- Configuring Kubernetes networking and access controls.
+- Integrating applications with a privately networked PostgreSQL database.
+- Implementing GitHub Actions CI/CD using Azure OIDC authentication.
+- Troubleshooting container image, authentication, and deployment issues.
+- Validating application functionality across the full cloud architecture.
+
+## Project Status
+
+The application and CI/CD pipeline have been successfully deployed and validated in a development environment.
+
+Azure resources may be removed between development sessions to manage costs. The repository preserves the application source code, infrastructure definitions, Kubernetes manifests, and CI/CD workflow for future deployments.
